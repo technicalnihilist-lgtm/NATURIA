@@ -34,8 +34,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class CatalogRepository {
 
-    /** Our own storage / CDN. */
+    /** Our own storage / CDN. jsDelivr mirrors the repo on a global edge network. */
     public static final String CDN_BASE =
+            "https://cdn.jsdelivr.net/gh/technicalnihilist-lgtm/NATURIA@main/";
+    /** Direct GitHub raw — used for the catalogue and as the audio fallback. */
+    public static final String CDN_MIRROR =
             "https://raw.githubusercontent.com/technicalnihilist-lgtm/NATURIA/main/";
     private static final String CATALOG_PATH = "catalog/catalog.json";
     private static final String CACHE_FILE = "catalog-live.json";
@@ -102,7 +105,7 @@ public class CatalogRepository {
         new Thread(() -> {
             String json = null;
             try {
-                json = fetch(CDN_BASE + CATALOG_PATH);
+                json = fetch(CDN_MIRROR + CATALOG_PATH);
             } catch (Exception e) {
                 Log.w(TAG, "catalogue refresh failed: " + e.getMessage());
             }
@@ -217,6 +220,11 @@ public class CatalogRepository {
     /** Every sound streams straight from the CDN — nothing is stored on the device. */
     public String audioUrl(Sound s) {
         return CDN_BASE + s.cdnPath;
+    }
+
+    /** Second source, tried once if the primary CDN fails. */
+    public String audioUrlMirror(Sound s) {
+        return CDN_MIRROR + s.cdnPath;
     }
 
     public List<Sound> search(String q) {
