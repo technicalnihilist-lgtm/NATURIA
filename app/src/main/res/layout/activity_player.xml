@@ -161,14 +161,14 @@
                 android:src="@drawable/ic_mix" />
 
             <ImageView
-                android:id="@+id/btn_download"
+                android:id="@+id/btn_info"
                 android:layout_width="46dp"
                 android:layout_height="46dp"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/bg_circle"
-                android:contentDescription="@string/download"
+                android:contentDescription="@string/about"
                 android:padding="11dp"
-                android:src="@drawable/ic_download" />
+                android:src="@drawable/ic_info" />
         </LinearLayout>
 
         <LinearLayout
