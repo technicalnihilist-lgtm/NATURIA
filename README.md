@@ -1,12 +1,13 @@
 # NATURIA — Nature sounds, A to Z
 
-A native Android nature-sound app: 127 licence-verified recordings, a premium
-glass-and-forest interface, a multi-layer mixing studio, offline downloads and a
-background media service with lock-screen controls.
+A native Android nature-sound app that **streams online**: 127 licence-verified
+recordings, a premium glass-and-forest interface, a multi-layer mixing studio and
+a background media service with lock-screen controls. The catalogue is **live** —
+new recordings added to the CDN show up in the app without an app update.
 
-**[Download the APK](https://github.com/technicalnihilist-lgtm/NATURIA/releases/download/v1.0.0/NATURIA-1.0.apk)** · 9.4 MB · `com.naturia.app` · Android 7.0+
+**[Download the APK](https://github.com/technicalnihilist-lgtm/NATURIA/releases/latest)** · 9.1 MB · `com.naturia.app` · Android 7.0+
 
-[![Home](screenshots/01-home.png)](https://github.com/technicalnihilist-lgtm/NATURIA/releases/tag/v1.0.0)
+[![Home](screenshots/01-home.png)](https://github.com/technicalnihilist-lgtm/NATURIA/releases/latest)
 
 | Explore | Player | Studio | Library (light) |
 |---|---|---|---|
@@ -22,7 +23,7 @@ background media service with lock-screen controls.
 | Total audio | 82 MB of 96 kbps mono MP3, ~52 s per loop, loudness-levelled |
 | Licences | Public domain 51 · CC BY-SA 41 · CC BY 25 · CC0 10 — **zero** unlicensed files |
 | Sources | Wikimedia Commons 94 · Internet Archive 33 |
-| APK | 9.4 MB, signed, `minSdk 24`, `targetSdk 34` |
+| APK | 9.1 MB, signed, `minSdk 24`, `targetSdk 34` |
 
 ### Features
 
@@ -31,8 +32,9 @@ with per-letter counts; featured, popular, recently-played rails; a deterministi
 "daily nature sound" that is the same for everyone on a given day.
 
 **Player** — full-screen artwork, transport, seek, per-sound volume, gapless loop,
-favourites, one-tap download, hand-off into the mixer, and a licence line under
-the controls showing creator, licence and provider.
+favourites, hand-off into the mixer, a licence sheet with the original source
+link, and a licence line under the controls showing creator, licence and provider.
+Every sound streams straight from the CDN — nothing is stored on the device.
 
 **Sleep timer** — 5 / 10 / 15 / 30 / 60 minutes. The last eight seconds fade out
 before playback stops, so it never cuts abruptly.
@@ -41,7 +43,12 @@ before playback stops, so it never cuts abruptly.
 five one-tap presets (Rain + Thunder, Ocean + Seagulls, Forest + Birds,
 River + Wind, Campfire + Night Crickets); save and replay your own mixes.
 
-**Library** — favourites, play history and offline downloads, all in SQLite.
+**Live catalogue** — the app ships a seed catalogue in assets, then pulls
+`catalog/catalog.json` from the CDN on every start and swaps it in (cached to
+internal storage, with a toast when new sounds arrive). Add a recording to the
+CDN and it appears under *New sounds* on the next launch — no APK update.
+
+**Library** — favourites, play history and a *New* tab, all in SQLite.
 
 **Background playback** — a `MediaSessionService` with ExoPlayer: notification,
 lock-screen controls, audio-focus handling, becoming-noisy handling, wake mode,
@@ -51,6 +58,9 @@ layer 0 every 400 ms so a lock-screen pause pauses the whole mix.
 **Design** — deep forest green, soft blue and mint; translucent glass cards with
 hairline strokes; 28 dp radii; CC-licensed nature photography as category art;
 day/night themes (system, light, dark) with a proper light palette.
+
+**Online only** — no download manager, no media stored on the phone, no storage
+permission. If the network drops the player says so instead of failing silently.
 
 **Privacy** — no account, no login, no analytics, no ads, no social features.
 Permissions: `INTERNET`, `ACCESS_NETWORK_STATE`, `WAKE_LOCK`,
@@ -120,9 +130,12 @@ app/src/main/java/com/naturia/app/
   the build stays fast and the APK small.
 * **Network** — `HttpURLConnection` only. No OkHttp, no image library; artwork is
   bundled and decoded from assets into an `LruCache`.
-* **Failure handling** — downloads write to `.part` and only rename on success;
-  playback falls back to streaming if the local file is missing; errors surface
-  as a toast rather than a crash.
+* **Live catalogue** — `CatalogRepository` parses the bundled seed synchronously,
+  then refreshes from the CDN on a background thread and notifies the UI. The
+  last good payload is cached in internal storage, so a cold start with no
+  network still shows the full catalogue and streams as soon as it reconnects.
+* **Failure handling** — a failed refresh keeps the previous catalogue and marks
+  the header *Offline*; playback errors surface as a toast rather than a crash.
 
 ### Build it yourself
 
@@ -146,6 +159,7 @@ to the debug key otherwise, so a fresh clone still builds.
   environment has no KVM, so no emulator was available for device captures.
 * The APK compiles and is signed and verified (`apksigner verify` passes), but it
   has not been exercised on a physical device here.
+* v1.1 is signed with a new key, so uninstall v1.0 before installing it.
 * Some sourced recordings are close matches rather than perfect ones (a "Valley
   Wind" slot may be filled by a generic wind field recording). Titles, creators
   and sources are always the real ones, and every file is genuinely the type of

@@ -291,7 +291,11 @@ def main():
 def write_outputs(st):
     recs = sorted(st["done"].values(), key=lambda r: (r["letter"], r["name"]))
     with open(os.path.join(CAT, "catalog.json"), "w") as f:
-        json.dump({"version": 1, "generated": "2026-11-04", "count": len(recs),
+        import datetime
+        today = datetime.date.today().isoformat()
+        for r in recs:
+            r.setdefault("added", today)
+        json.dump({"version": 1, "generated": today, "count": len(recs),
                    "sounds": recs}, f, indent=1)
     with open(os.path.join(CAT, "rejected.json"), "w") as f:
         json.dump(st["rejected"], f, indent=1)

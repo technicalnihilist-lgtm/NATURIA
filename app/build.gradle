@@ -1,0 +1,66 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.naturia.app'
+    compileSdk 34
+    buildToolsVersion "34.0.0"
+
+    defaultConfig {
+        applicationId "com.naturia.app"
+        minSdk 24
+        targetSdk 34
+        versionCode 2
+        versionName "1.1"
+        resConfigs "en"
+    }
+
+    signingConfigs {
+        release {
+            // keytool -genkeypair -keystore keystore/naturia.jks -alias naturia \
+            //   -keyalg RSA -keysize 2048 -validity 10950
+            def ks = file("../keystore/naturia.jks")
+            if (ks.exists()) {
+                storeFile ks
+                storePassword System.getenv("NATURIA_STORE_PASS") ?: "naturia2026"
+                keyAlias System.getenv("NATURIA_KEY_ALIAS") ?: "naturia"
+                keyPassword System.getenv("NATURIA_KEY_PASS") ?: "naturia2026"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            signingConfig file("../keystore/naturia.jks").exists()
+                    ? signingConfigs.release : signingConfigs.debug
+        }
+        debug {
+            applicationIdSuffix ".debug"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packagingOptions {
+        resources.excludes += ['META-INF/LICENSE*', 'META-INF/NOTICE*']
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.fragment:fragment:1.6.2'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.media3:media3-exoplayer:1.2.1'
+    implementation 'androidx.media3:media3-session:1.2.1'
+}
