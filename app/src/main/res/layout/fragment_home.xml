@@ -38,6 +38,21 @@
                     android:layout_height="wrap_content"
                     style="@style/Text.Body"
                     android:text="@string/tagline" />
+
+                <TextView
+                    android:id="@+id/tv_live"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_pill"
+                    android:paddingStart="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="4dp"
+                    android:text="Live catalogue"
+                    android:textColor="@color/primary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <ImageView
@@ -145,9 +160,26 @@
         </FrameLayout>
 
         <TextView
+            android:id="@+id/tv_new_header"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
+            style="@style/Text.Section"
+            android:text="New sounds" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_new"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            android:scrollbars="none" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
             style="@style/Text.Section"
             android:text="@string/featured" />
 
