@@ -12,7 +12,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import com.naturia.app.R;
 import com.naturia.app.data.AppDb;
-import com.naturia.app.data.DownloadStore;
+import com.naturia.app.data.CatalogRepository;
 
 /** Appearance, storage and history controls. */
 public class SettingsActivity extends AppCompatActivity {
@@ -42,11 +42,14 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         TextView storage = findViewById(R.id.tv_storage);
-        long bytes = AppDb.get(this).totalDownloadBytes();
-        int count = AppDb.get(this).downloads().size();
-        storage.setText(count + " sounds stored offline · "
-                + String.format("%.1f MB", bytes / (1024.0 * 1024.0))
-                + "\nFolder: " + DownloadStore.get(this).dir().getAbsolutePath());
+        CatalogRepository repo = CatalogRepository.get(this);
+        storage.setText(repo.all().size() + " sounds live from the CDN"
+                + (repo.generated().isEmpty() ? "" : "\nCatalogue updated " + repo.generated())
+                + "\n" + CatalogRepository.CDN_BASE + "\nTap to refresh now — new recordings appear without an app update.");
+        storage.setOnClickListener(x -> {
+            repo.refresh();
+            Toast.makeText(this, "Checking for new sounds…", Toast.LENGTH_SHORT).show();
+        });
 
         findViewById(R.id.btn_clear_history).setOnClickListener(v -> {
             AppDb.get(this).clearHistory();
