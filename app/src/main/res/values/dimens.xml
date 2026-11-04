@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="pad">20dp</dimen>
+    <dimen name="pad_s">12dp</dimen>
+    <dimen name="radius_l">28dp</dimen>
+    <dimen name="radius_m">20dp</dimen>
+    <dimen name="radius_s">14dp</dimen>
+</resources>

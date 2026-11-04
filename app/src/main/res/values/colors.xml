@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#F2F8F3</color>
+    <color name="bg_alt">#E7F2EA</color>
+    <color name="grad_top">#EAF6EE</color>
+    <color name="grad_mid">#DCEFE4</color>
+    <color name="grad_bottom">#F4FAF6</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="glass_fill">#B3FFFFFF</color>
+    <color name="glass_fill_strong">#E6FFFFFF</color>
+    <color name="glass_stroke">#33FFFFFF</color>
+    <color name="glass_stroke_soft">#1F0B3B2A</color>
+    <color name="primary">#127A52</color>
+    <color name="primary_dark">#0B5C3D</color>
+    <color name="primary_light">#7EE2B0</color>
+    <color name="secondary">#2E7DA6</color>
+    <color name="secondary_light">#9AD7F5</color>
+    <color name="accent">#C9A227</color>
+    <color name="text">#0A1F14</color>
+    <color name="text_dim">#4B6B58</color>
+    <color name="text_faint">#7E9A88</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="danger">#C0392B</color>
+    <color name="scrim_top">#00000000</color>
+    <color name="scrim_bottom">#CC04120B</color>
+    <color name="nav_bg">#F7FFFFFF</color>
+    <color name="chip_bg">#1A0B3B2A</color>
+    <color name="chip_bg_on">#127A52</color>
+    <color name="slider_track">#1F0B3B2A</color>
+    <color name="divider">#140B3B2A</color>
+</resources>
