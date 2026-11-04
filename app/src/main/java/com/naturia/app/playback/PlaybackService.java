@@ -18,9 +18,15 @@ import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
+import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.datasource.DefaultHttpDataSource;
+import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.MediaSessionService;
 
@@ -34,7 +40,12 @@ import com.naturia.app.ui.PlayerActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Foreground media service: single-sound playback plus the multi-layer mix engine. */
+/**
+ * Foreground media service. Single-sound playback plus the multi-layer mix
+ * engine. Every track loops, streams from the CDN with a mirror fallback, and
+ * the service promotes itself to foreground immediately so Android never kills
+ * it while the first bytes are still buffering.
+ */
 @UnstableApi
 public class PlaybackService extends MediaSessionService {
 
@@ -44,6 +55,8 @@ public class PlaybackService extends MediaSessionService {
     public static final String ACTION_MIX = "com.naturia.app.action.MIX";
     public static final String ACTION_SLEEP = "com.naturia.app.action.SLEEP";
     public static final String ACTION_VOLUME = "com.naturia.app.action.VOLUME";
+    public static final String ACTION_REPEAT = "com.naturia.app.action.REPEAT";
+    public static final String ACTION_SEEK = "com.naturia.app.action.SEEK";
 
     public static final String EXTRA_ID = "id";
     public static final String EXTRA_IDS = "ids";
@@ -51,17 +64,25 @@ public class PlaybackService extends MediaSessionService {
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MINUTES = "minutes";
     public static final String EXTRA_VALUE = "value";
+    public static final String EXTRA_POS = "pos";
+    public static final String EXTRA_ENABLED = "enabled";
 
+    private static final String CHANNEL_STATUS = "naturia_status";
     private static final String CHANNEL_MIX = "naturia_mix";
+    private static final int STATUS_NOTIFICATION_ID = 41;
     private static final int MIX_NOTIFICATION_ID = 42;
     private static final int MAX_LAYERS = 6;
 
+    private static volatile boolean needEmergencyForeground = false;
+
     private ExoPlayer player;
     private MediaSession session;
+    private DataSource.Factory dataSourceFactory;
     private final List<ExoPlayer> mixPlayers = new ArrayList<>();
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable sleepRunnable;
-    private boolean sleeping = false;
+    private String currentSoundId;
+    private boolean usingMirror = false;
 
     @Nullable
     @Override
@@ -72,17 +93,32 @@ public class PlaybackService extends MediaSessionService {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        DefaultHttpDataSource.Factory http = new DefaultHttpDataSource.Factory()
+                .setUserAgent("NATURIA/1.2 (Android)")
+                .setConnectTimeoutMs(15000)
+                .setReadTimeoutMs(20000)
+                .setAllowCrossProtocolRedirects(true);
+        dataSourceFactory = new DefaultDataSource.Factory(this, http);
+
         AudioAttributes attrs = new AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .build();
 
+        // Generous buffers: a slow first read must not look like a dead track.
+        DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
+                .setBufferDurationsMs(30_000, 120_000, 1_500, 3_000)
+                .build();
+
         player = new ExoPlayer.Builder(this)
+                .setMediaSourceFactory(new DefaultMediaSourceFactory(dataSourceFactory))
+                .setLoadControl(loadControl)
                 .setAudioAttributes(attrs, true)
                 .setHandleAudioBecomingNoisy(true)
                 .setWakeMode(C.WAKE_MODE_LOCAL)
                 .build();
-        player.setRepeatMode(Player.REPEAT_MODE_ONE);
+        player.setRepeatMode(PlaybackHub.repeat ? Player.REPEAT_MODE_ONE : Player.REPEAT_MODE_OFF);
         player.setVolume(PlaybackHub.volume);
 
         player.addListener(new Player.Listener() {
@@ -90,6 +126,7 @@ public class PlaybackService extends MediaSessionService {
             public void onPlaybackStateChanged(int state) {
                 PlaybackHub.playing = player.isPlaying();
                 PlaybackHub.buffering = state == Player.STATE_BUFFERING;
+                if (state == Player.STATE_READY) PlaybackHub.error = null;
                 pushState();
             }
 
@@ -97,15 +134,17 @@ public class PlaybackService extends MediaSessionService {
             public void onIsPlayingChanged(boolean isPlaying) {
                 if (PlaybackHub.mode == PlaybackHub.MODE_SINGLE) {
                     PlaybackHub.playing = isPlaying;
+                    if (isPlaying) {
+                        PlaybackHub.buffering = false;
+                        PlaybackHub.error = null;
+                    }
                     pushState();
                 }
             }
 
             @Override
-            public void onPlayerError(androidx.media3.common.PlaybackException error) {
-                PlaybackHub.buffering = false;
-                PlaybackHub.playing = false;
-                pushState();
+            public void onPlayerError(PlaybackException error) {
+                handlePlaybackError(error);
             }
         });
 
@@ -119,7 +158,7 @@ public class PlaybackService extends MediaSessionService {
                 .build();
 
         handler.post(ticker);
-        createMixChannel();
+        createChannels();
     }
 
     private final Runnable ticker = new Runnable() {
@@ -146,6 +185,14 @@ public class PlaybackService extends MediaSessionService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // MediaSessionService needs this to wire up the session + notification.
+        int result = super.onStartCommand(intent, flags, startId);
+
+        if (needEmergencyForeground) {
+            needEmergencyForeground = false;
+            emergencyForeground();
+        }
+
         if (intent != null && intent.getAction() != null) {
             switch (intent.getAction()) {
                 case ACTION_PLAY:
@@ -168,11 +215,17 @@ public class PlaybackService extends MediaSessionService {
                 case ACTION_VOLUME:
                     setVolume(intent.getFloatExtra(EXTRA_VALUE, 1f));
                     break;
+                case ACTION_REPEAT:
+                    setRepeat(intent.getBooleanExtra(EXTRA_ENABLED, true));
+                    break;
+                case ACTION_SEEK:
+                    seekTo(intent.getLongExtra(EXTRA_POS, 0));
+                    break;
                 default:
                     break;
             }
         }
-        return START_STICKY;
+        return result;
     }
 
     /* ---------------- single sound ---------------- */
@@ -182,13 +235,32 @@ public class PlaybackService extends MediaSessionService {
         Sound s = CatalogRepository.get(this).byId(id);
         if (s == null) return;
         stopMix(false);
-        sleeping = false;
         restoreVolume();
 
-        Uri uri = Uri.parse(CatalogRepository.get(this).audioUrl(s));
+        currentSoundId = s.id;
+        usingMirror = false;
+        PlaybackHub.error = null;
+        PlaybackHub.buffering = true;
+        PlaybackHub.mode = PlaybackHub.MODE_SINGLE;
+        PlaybackHub.soundId = s.id;
+        PlaybackHub.title = s.name;
+        PlaybackHub.subtitle = s.group + " · " + s.letter;
+        PlaybackHub.mixLayers = new ArrayList<>();
 
-        MediaItem item = new MediaItem.Builder()
-                .setUri(uri)
+        player.setMediaItem(mediaItem(s, false));
+        player.setRepeatMode(PlaybackHub.repeat ? Player.REPEAT_MODE_ONE : Player.REPEAT_MODE_OFF);
+        player.prepare();
+        player.play();
+
+        AppDb.get(this).markPlayed(s.id);
+        pushState();
+    }
+
+    private MediaItem mediaItem(Sound s, boolean mirror) {
+        String url = mirror ? CatalogRepository.get(this).audioUrlMirror(s)
+                : CatalogRepository.get(this).audioUrl(s);
+        return new MediaItem.Builder()
+                .setUri(Uri.parse(url))
                 .setMediaId(s.id)
                 .setMediaMetadata(new MediaMetadata.Builder()
                         .setTitle(s.name)
@@ -196,19 +268,39 @@ public class PlaybackService extends MediaSessionService {
                         .setAlbumTitle("Nature sounds")
                         .build())
                 .build();
+    }
 
-        player.setMediaItem(item);
-        player.setRepeatMode(Player.REPEAT_MODE_ONE);
-        player.prepare();
-        player.play();
+    /** One silent retry on the mirror CDN before we tell the user it failed. */
+    private void handlePlaybackError(PlaybackException error) {
+        PlaybackHub.buffering = false;
+        Sound s = currentSoundId == null ? null
+                : CatalogRepository.get(this).byId(currentSoundId);
+        if (s != null && !usingMirror && PlaybackHub.mode == PlaybackHub.MODE_SINGLE) {
+            usingMirror = true;
+            player.setMediaItem(mediaItem(s, true));
+            player.prepare();
+            player.play();
+            PlaybackHub.error = "Switching source…";
+            pushState();
+            return;
+        }
+        PlaybackHub.playing = false;
+        PlaybackHub.error = "This sound could not load. Check your connection and try again.";
+        pushState();
+    }
 
-        PlaybackHub.mode = PlaybackHub.MODE_SINGLE;
-        PlaybackHub.soundId = s.id;
-        PlaybackHub.title = s.name;
-        PlaybackHub.subtitle = s.group + " · " + s.letter;
-        PlaybackHub.playing = true;
-        PlaybackHub.mixLayers = new ArrayList<>();
-        AppDb.get(this).markPlayed(s.id);
+    private void seekTo(long positionMs) {
+        if (player != null && PlaybackHub.mode == PlaybackHub.MODE_SINGLE) {
+            player.seekTo(Math.max(0, positionMs));
+            pushState();
+        }
+    }
+
+    private void setRepeat(boolean enabled) {
+        PlaybackHub.repeat = enabled;
+        int mode = enabled ? Player.REPEAT_MODE_ONE : Player.REPEAT_MODE_OFF;
+        if (player != null) player.setRepeatMode(mode);
+        for (ExoPlayer p : mixPlayers) p.setRepeatMode(mode);
         pushState();
     }
 
@@ -218,9 +310,12 @@ public class PlaybackService extends MediaSessionService {
             for (ExoPlayer p : mixPlayers) p.setPlayWhenReady(play);
             PlaybackHub.playing = play;
         } else if (player != null) {
-            if (player.isPlaying()) player.pause();
-            else if (player.getPlaybackState() == Player.STATE_IDLE) player.prepare();
-            else player.play();
+            if (player.isPlaying()) {
+                player.pause();
+            } else {
+                if (player.getPlaybackState() == Player.STATE_IDLE) player.prepare();
+                player.play();
+            }
             PlaybackHub.playing = player.isPlaying();
         }
         pushState();
@@ -243,7 +338,10 @@ public class PlaybackService extends MediaSessionService {
 
     private void startMix(String[] ids, float[] vols, String title) {
         stopMix(true);
-        stopSinglePlayer();
+        if (player != null) {
+            player.pause();
+            player.stop();
+        }
         if (ids == null || ids.length == 0) return;
 
         CatalogRepository repo = CatalogRepository.get(this);
@@ -259,12 +357,12 @@ public class PlaybackService extends MediaSessionService {
             if (s == null) continue;
             float vol = (vols != null && i < vols.length) ? vols[i] : 0.8f;
             ExoPlayer p = new ExoPlayer.Builder(this)
+                    .setMediaSourceFactory(new DefaultMediaSourceFactory(dataSourceFactory))
                     .setAudioAttributes(attrs, true)
                     .setWakeMode(C.WAKE_MODE_LOCAL)
                     .build();
-            p.setRepeatMode(Player.REPEAT_MODE_ONE);
-            Uri uri = Uri.parse(repo.audioUrl(s));
-            p.setMediaItem(MediaItem.fromUri(uri));
+            p.setRepeatMode(PlaybackHub.repeat ? Player.REPEAT_MODE_ONE : Player.REPEAT_MODE_OFF);
+            p.setMediaItem(MediaItem.fromUri(Uri.parse(repo.audioUrl(s))));
             p.setVolume(vol * PlaybackHub.volume);
             p.prepare();
             p.play();
@@ -276,10 +374,13 @@ public class PlaybackService extends MediaSessionService {
         PlaybackHub.mixLayers = layers;
         PlaybackHub.soundId = null;
         PlaybackHub.title = title == null || title.isEmpty() ? "Custom mix" : title;
-        PlaybackHub.subtitle = layers.size() + " layers";
+        PlaybackHub.subtitle = layers.size() + " layers · looping";
         PlaybackHub.playing = true;
+        PlaybackHub.buffering = false;
         pushState();
         startForeground(MIX_NOTIFICATION_ID, mixNotification());
+        NotificationManager nmx = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (nmx != null) nmx.cancel(STATUS_NOTIFICATION_ID);
         handler.post(mixSync);
     }
 
@@ -314,19 +415,16 @@ public class PlaybackService extends MediaSessionService {
         }
     }
 
-    private void stopSinglePlayer() {
+    private void stopEverything() {
+        stopMix(true);
         if (player != null) {
             player.pause();
             player.stop();
         }
-    }
-
-    private void stopEverything() {
-        sleeping = false;
-        stopMix(true);
-        stopSinglePlayer();
         PlaybackHub.mode = PlaybackHub.MODE_NONE;
         PlaybackHub.playing = false;
+        PlaybackHub.buffering = false;
+        PlaybackHub.error = null;
         PlaybackHub.soundId = null;
         PlaybackHub.sleepEndsAt = 0;
         PlaybackHub.mixLayers = new ArrayList<>();
@@ -344,13 +442,12 @@ public class PlaybackService extends MediaSessionService {
             return;
         }
         PlaybackHub.sleepEndsAt = System.currentTimeMillis() + minutes * 60_000L;
-        sleepRunnable = () -> fadeOutAndStop();
+        sleepRunnable = this::fadeOutAndStop;
         handler.postDelayed(sleepRunnable, minutes * 60_000L);
         PlaybackHub.notifyChanged();
     }
 
     private void fadeOutAndStop() {
-        sleeping = true;
         final float start = PlaybackHub.volume;
         final int steps = 20;
         for (int i = 0; i <= steps; i++) {
@@ -378,16 +475,42 @@ public class PlaybackService extends MediaSessionService {
         }
     }
 
-    /* ---------------- mix notification ---------------- */
+    /* ---------------- notifications ---------------- */
 
-    private void createMixChannel() {
+    private void createChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel ch = new NotificationChannel(CHANNEL_MIX, "Sound mixing",
-                    NotificationManager.IMPORTANCE_LOW);
-            ch.setShowBadge(false);
             NotificationManager nm = getSystemService(NotificationManager.class);
-            if (nm != null) nm.createNotificationChannel(ch);
+            if (nm == null) return;
+            NotificationChannel status = new NotificationChannel(CHANNEL_STATUS, "Playback status",
+                    NotificationManager.IMPORTANCE_MIN);
+            status.setShowBadge(false);
+            nm.createNotificationChannel(status);
+            NotificationChannel mix = new NotificationChannel(CHANNEL_MIX, "Sound mixing",
+                    NotificationManager.IMPORTANCE_LOW);
+            mix.setShowBadge(false);
+            nm.createNotificationChannel(mix);
         }
+    }
+
+    /**
+     * Normal path is a plain startService(): Media3 promotes the service to
+     * foreground itself once playback begins, which is also what keeps the
+     * five-second foreground rule from ever firing while a track buffers.
+     * This is only the fallback for when Android refuses a background start.
+     */
+    private void emergencyForeground() {
+        Intent open = new Intent(this, PlayerActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(this, 9, open,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Notification n = new NotificationCompat.Builder(this, CHANNEL_STATUS)
+                .setSmallIcon(R.drawable.ic_leaf)
+                .setContentTitle("NATURIA")
+                .setContentText("Preparing nature sound…")
+                .setContentIntent(pi)
+                .setOngoing(true)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .build();
+        startForeground(STATUS_NOTIFICATION_ID, n);
     }
 
     private Notification mixNotification() {
@@ -487,8 +610,26 @@ public class PlaybackService extends MediaSessionService {
         start(c, new Intent(c, PlaybackService.class).setAction(ACTION_VOLUME).putExtra(EXTRA_VALUE, v));
     }
 
+    public static void repeat(Context c, boolean enabled) {
+        start(c, new Intent(c, PlaybackService.class).setAction(ACTION_REPEAT).putExtra(EXTRA_ENABLED, enabled));
+    }
+
+    public static void seek(Context c, long positionMs) {
+        start(c, new Intent(c, PlaybackService.class).setAction(ACTION_SEEK).putExtra(EXTRA_POS, positionMs));
+    }
+
     private static void start(Context c, Intent i) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) c.startForegroundService(i);
-        else c.startService(i);
+        try {
+            c.startService(i);
+        } catch (IllegalStateException backgroundStartBlocked) {
+            // Only happens if the app is in the background; give Android the
+            // foreground notification it demands in that case.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                needEmergencyForeground = true;
+                c.startForegroundService(i);
+            } else {
+                throw backgroundStartBlocked;
+            }
+        }
     }
 }
