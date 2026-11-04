@@ -31,10 +31,11 @@ new recordings added to the CDN show up in the app without an app update.
 with per-letter counts; featured, popular, recently-played rails; a deterministic
 "daily nature sound" that is the same for everyone on a given day.
 
-**Player** — full-screen artwork, transport, seek, per-sound volume, gapless loop,
-favourites, hand-off into the mixer, a licence sheet with the original source
-link, and a licence line under the controls showing creator, licence and provider.
-Every sound streams straight from the CDN — nothing is stored on the device.
+**Player** — full-screen artwork, transport, seek, per-sound volume, favourites,
+hand-off into the mixer, a licence sheet with the original source link, and a
+licence line under the controls showing creator, licence and provider. Every
+sound **loops forever** by default (`REPEAT_MODE_ONE`) and the loop button turns
+that on and off for real. Nothing is stored on the device.
 
 **Sleep timer** — 5 / 10 / 15 / 30 / 60 minutes. The last eight seconds fade out
 before playback stops, so it never cuts abruptly.
@@ -130,6 +131,11 @@ app/src/main/java/com/naturia/app/
   the build stays fast and the APK small.
 * **Network** — `HttpURLConnection` only. No OkHttp, no image library; artwork is
   bundled and decoded from assets into an `LruCache`.
+* **Delivery** — audio streams from jsDelivr (`cdn.jsdelivr.net/gh/...@main`), a
+  real edge CDN, because `raw.githubusercontent.com` is throttled on many Indian
+  networks. If a track fails to load, the player retries once against the GitHub
+  raw mirror before showing an error, and a 30 s / 120 s load-control window
+  keeps slow first reads from looking like dead tracks.
 * **Live catalogue** — `CatalogRepository` parses the bundled seed synchronously,
   then refreshes from the CDN on a background thread and notifies the UI. The
   last good payload is cached in internal storage, so a cold start with no
