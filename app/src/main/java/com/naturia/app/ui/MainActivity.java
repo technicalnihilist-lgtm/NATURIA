@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.naturia.app.R;
+import com.naturia.app.data.CatalogRepository;
 import com.naturia.app.model.MixLayer;
 import com.naturia.app.model.Sound;
 import com.naturia.app.playback.PlaybackHub;
@@ -26,7 +27,8 @@ import com.naturia.app.util.Art;
 import java.util.List;
 
 /** Shell: tab navigation, mini player and the shared playback bridge. */
-public class MainActivity extends AppCompatActivity implements PlaybackHub.Listener {
+public class MainActivity extends AppCompatActivity
+        implements PlaybackHub.Listener, CatalogRepository.OnCatalogChanged {
 
     private View mini;
     private TextView miniTitle, miniSub;
@@ -55,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackHub.Liste
 
         select(0);
         PlaybackHub.addListener(this);
+        CatalogRepository.get(this).addListener(this);
+        CatalogRepository.get(this).refresh();
         onPlaybackState();
         askNotificationPermission();
     }
@@ -135,8 +139,18 @@ public class MainActivity extends AppCompatActivity implements PlaybackHub.Liste
     }
 
     @Override
+    public void onCatalogChanged(int total, int added, boolean fromNetwork) {
+        if (added > 0 && fromNetwork) {
+            runOnUiThread(() -> android.widget.Toast.makeText(this,
+                    added + " new sound" + (added == 1 ? "" : "s") + " added live",
+                    android.widget.Toast.LENGTH_SHORT).show());
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         PlaybackHub.removeListener(this);
+        CatalogRepository.get(this).removeListener(this);
         super.onDestroy();
     }
 
