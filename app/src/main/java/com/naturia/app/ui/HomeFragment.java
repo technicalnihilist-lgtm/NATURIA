@@ -21,13 +21,19 @@ import com.naturia.app.data.CatalogRepository;
 import com.naturia.app.model.Sound;
 import com.naturia.app.util.Art;
 
+import android.widget.TextView;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /** Landing screen: daily pick, featured, recent, popular and the A-Z index. */
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements CatalogRepository.OnCatalogChanged {
 
     private CatalogRepository repo;
+    private TextView live;
+    private Adapters.SoundCardAdapter featuredAdapter, popularAdapter, newAdapter;
+    private RecyclerView newRail;
+    private TextView newHeader;
 
     @Nullable
     @Override
@@ -53,13 +59,22 @@ public class HomeFragment extends Fragment {
             v.findViewById(R.id.daily_play).setOnClickListener(open);
         }
 
+        live = v.findViewById(R.id.tv_live);
+        newHeader = v.findViewById(R.id.tv_new_header);
+        newRail = v.findViewById(R.id.rv_new);
+        newRail.setLayoutManager(new LinearLayoutManager(requireContext(),
+                LinearLayoutManager.HORIZONTAL, false));
+        newAdapter = new Adapters.SoundCardAdapter(requireContext(),
+                s -> ((MainActivity) requireActivity()).playSound(s));
+        newRail.setAdapter(newAdapter);
+
         RecyclerView featured = v.findViewById(R.id.rv_featured);
         featured.setLayoutManager(new LinearLayoutManager(requireContext(),
                 LinearLayoutManager.HORIZONTAL, false));
-        Adapters.SoundCardAdapter fa = new Adapters.SoundCardAdapter(requireContext(),
+        featuredAdapter = new Adapters.SoundCardAdapter(requireContext(),
                 s -> ((MainActivity) requireActivity()).playSound(s));
-        featured.setAdapter(fa);
-        fa.submit(repo.featured());
+        featured.setAdapter(featuredAdapter);
+        featuredAdapter.submit(repo.featured());
 
         RecyclerView recent = v.findViewById(R.id.rv_recent);
         recent.setLayoutManager(new LinearLayoutManager(requireContext(),
@@ -82,10 +97,10 @@ public class HomeFragment extends Fragment {
         RecyclerView popular = v.findViewById(R.id.rv_popular);
         popular.setLayoutManager(new LinearLayoutManager(requireContext(),
                 LinearLayoutManager.HORIZONTAL, false));
-        Adapters.SoundCardAdapter pa = new Adapters.SoundCardAdapter(requireContext(),
+        popularAdapter = new Adapters.SoundCardAdapter(requireContext(),
                 s -> ((MainActivity) requireActivity()).playSound(s));
-        popular.setAdapter(pa);
-        pa.submit(repo.popular());
+        popular.setAdapter(popularAdapter);
+        popularAdapter.submit(repo.popular());
 
         RecyclerView letters = v.findViewById(R.id.rv_letters);
         letters.setLayoutManager(new GridLayoutManager(requireContext(), 5));
@@ -93,6 +108,44 @@ public class HomeFragment extends Fragment {
                 repo.letterIndex(), letter -> ((MainActivity) requireActivity()).openExplore(letter));
         letters.setAdapter(la);
 
+        renderNew();
+        renderLive();
+        repo.addListener(this);
         return v;
+    }
+
+    private void renderNew() {
+        List<Sound> newest = repo.newest(8);
+        newAdapter.submit(newest);
+        boolean show = newest.size() > 4;
+        newRail.setVisibility(show ? View.VISIBLE : View.GONE);
+        newHeader.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    private void renderLive() {
+        if (live == null) return;
+        String when = repo.generated().isEmpty() ? "" : " · " + repo.generated();
+        live.setText(repo.isOffline()
+                ? "Offline · " + repo.all().size() + " cached sounds"
+                : "Live · " + repo.all().size() + " sounds" + when);
+        live.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(),
+                repo.isOffline() ? R.color.text_faint : R.color.primary));
+    }
+
+    @Override
+    public void onCatalogChanged(int total, int added, boolean fromNetwork) {
+        if (!isAdded()) return;
+        requireActivity().runOnUiThread(() -> {
+            featuredAdapter.submit(repo.featured());
+            popularAdapter.submit(repo.popular());
+            renderNew();
+            renderLive();
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        repo.removeListener(this);
+        super.onDestroyView();
     }
 }
