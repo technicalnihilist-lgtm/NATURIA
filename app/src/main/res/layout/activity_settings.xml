@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_screen"
+    android:orientation="vertical"
+    android:paddingStart="18dp"
+    android:paddingTop="18dp"
+    android:paddingEnd="18dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="@drawable/bg_circle"
+            android:contentDescription="@string/home"
+            android:padding="10dp"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            style="@style/Text.H1"
+            android:text="@string/settings" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        style="@style/Text.Section"
+        android:text="Appearance" />
+
+    <RadioGroup
+        android:id="@+id/rg_theme"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_glass_soft"
+        android:padding="8dp">
+
+        <RadioButton
+            android:id="@+id/rb_system"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Follow system"
+            android:textColor="@color/text" />
+
+        <RadioButton
+            android:id="@+id/rb_light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Light mode"
+            android:textColor="@color/text" />
+
+        <RadioButton
+            android:id="@+id/rb_dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dark mode"
+            android:textColor="@color/text" />
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        style="@style/Text.Section"
+        android:text="Storage" />
+
+    <TextView
+        android:id="@+id/tv_storage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_glass_soft"
+        android:padding="14dp"
+        android:textColor="@color/text_dim"
+        android:textSize="13sp" />
+
+    <Button
+        android:id="@+id/btn_clear_history"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_pill"
+        android:text="Clear play history"
+        android:textAllCaps="false"
+        android:textColor="@color/text" />
+
+    <Button
+        android:id="@+id/btn_about"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="22dp"
+        android:background="@drawable/bg_pill"
+        android:text="@string/about"
+        android:textAllCaps="false"
+        android:textColor="@color/text" />
+
+    <TextView
+        android:id="@+id/tv_version"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:gravity="center"
+        style="@style/Text.Caption"
+        android:text="NATURIA 1.0 · no account, no ads, no tracking" />
+</LinearLayout>

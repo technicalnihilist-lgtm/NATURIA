@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_screen">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <include
+            android:id="@+id/mini"
+            layout="@layout/view_mini_player"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:id="@+id/nav_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/bg_nav"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <LinearLayout
+                android:id="@+id/nav_home"
+                style="@style/NavItem"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/ic_nav_home"
+                    style="@style/NavIcon"
+                    android:src="@drawable/ic_home" />
+
+                <TextView
+                    android:id="@+id/tv_nav_home"
+                    style="@style/NavLabel"
+                    android:text="@string/home" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/nav_explore"
+                style="@style/NavItem"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/ic_nav_explore"
+                    style="@style/NavIcon"
+                    android:src="@drawable/ic_explore" />
+
+                <TextView
+                    android:id="@+id/tv_nav_explore"
+                    style="@style/NavLabel"
+                    android:text="@string/explore" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/nav_mix"
+                style="@style/NavItem"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/ic_nav_mix"
+                    style="@style/NavIcon"
+                    android:src="@drawable/ic_mix" />
+
+                <TextView
+                    android:id="@+id/tv_nav_mix"
+                    style="@style/NavLabel"
+                    android:text="@string/mix" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/nav_library"
+                style="@style/NavItem"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/ic_nav_library"
+                    style="@style/NavIcon"
+                    android:src="@drawable/ic_library" />
+
+                <TextView
+                    android:id="@+id/tv_nav_library"
+                    style="@style/NavLabel"
+                    android:text="@string/library" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
