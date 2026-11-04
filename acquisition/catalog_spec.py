@@ -1,0 +1,192 @@
+"""NATURIA catalogue specification: the A-Z sound list with discovery queries.
+
+Every entry is a *search intent*. The acquisition pipeline resolves each intent
+to a real, licence-verified recording. Nothing here is a placeholder: an entry
+that cannot be resolved to a permitted recording is dropped from the catalogue
+and recorded in catalog/rejected.json with the reason.
+"""
+
+# name, letter, group, queries (tried in order), tags
+SPEC = [
+    # ---------------- A ----------------
+    ("Amazon Rainforest", "A", "Forest", ["amazon rainforest sound", "rainforest ambience sound", "tropical rainforest sound"], ["jungle", "rain", "birds"]),
+    ("Arctic Wind", "A", "Wind", ["arctic wind sound", "cold wind sound", "wind blizzard sound"], ["wind", "cold"]),
+    ("Autumn Leaves", "A", "Forest", ["autumn leaves rustling sound", "dry leaves crunching sound", "leaves rustling autumn"], ["leaves", "forest"]),
+    ("Animals", "A", "Wildlife", ["animal sounds nature", "wildlife sounds forest", "animal calls"], ["animals"]),
+    ("Aurora Night", "A", "Night", ["night ambience crickets sound", "night nature ambience", "night forest sound"], ["night", "ambience"]),
+    ("Alpine Stream", "A", "Water", ["alpine stream sound", "mountain stream sound", "small stream water sound"], ["water", "stream"]),
+    ("Australian Bush", "A", "Forest", ["australian bush sound", "bush ambience australia", "eucalyptus forest sound"], ["bush", "birds"]),
+    ("Autumn Wind", "A", "Wind", ["autumn wind sound", "autumn forest wind", "wind through trees sound"], ["wind", "autumn"]),
+    # ---------------- B ----------------
+    ("Birds Chirping", "B", "Birds", ["birds chirping sound", "bird song dawn chorus", "birds singing sound"], ["birds"]),
+    ("Beach Waves", "B", "Ocean", ["beach waves sound", "waves on beach sound", "sea shore waves sound"], ["ocean", "waves"]),
+    ("Brook", "B", "Water", ["brook sound", "small brook water sound", "creek water sound"], ["water", "brook"]),
+    ("Bumblebees", "B", "Wildlife", ["bumblebee sound", "bee buzzing sound", "bees buzzing"], ["insects"]),
+    ("Babbling Brook", "B", "Water", ["babbling brook sound", "brook babbling water", "forest brook sound"], ["water"]),
+    ("Bats", "B", "Wildlife", ["bat echolocation sound", "bats sound", "bat calls"], ["animals"]),
+    ("Bamboo Forest", "B", "Forest", ["bamboo forest sound", "bamboo wind sound", "bamboo leaves sound"], ["forest"]),
+    ("Breeze", "B", "Wind", ["gentle breeze sound", "soft breeze wind sound", "light wind sound"], ["wind"]),
+    # ---------------- C ----------------
+    ("Campfire", "C", "Fire", ["campfire sound", "campfire crackling sound", "bonfire sound"], ["fire"]),
+    ("Crickets", "C", "Night", ["crickets sound", "cricket chirping sound", "crickets night sound"], ["insects", "night"]),
+    ("Creek", "C", "Water", ["creek sound", "creek flowing water sound", "creek ambience"], ["water"]),
+    ("Canyon Wind", "C", "Wind", ["canyon wind sound", "desert canyon wind", "wind canyon howl"], ["wind"]),
+    ("Cicadas", "C", "Wildlife", ["cicada sound", "cicadas singing sound", "cicada chorus"], ["insects"]),
+    ("Cave Drips", "C", "Ambience", ["cave water dripping sound", "cave drips sound", "dripping water cave"], ["cave"]),
+    ("Cathedral Forest", "C", "Forest", ["old growth forest sound", "tall forest sound", "ancient forest ambience"], ["forest"]),
+    ("Coastal Storm", "C", "Storm", ["coastal storm sound", "storm at sea sound", "wind and waves storm"], ["storm", "ocean"]),
+    # ---------------- D ----------------
+    ("Dolphins", "D", "Wildlife", ["dolphin sound", "dolphin whistles", "dolphin echolocation"], ["animals", "ocean"]),
+    ("Distant Thunder", "D", "Storm", ["distant thunder sound", "thunder rumble sound", "far thunder sound"], ["thunder"]),
+    ("Ducks", "D", "Wildlife", ["duck sound", "ducks quacking sound", "duck calls"], ["birds"]),
+    ("Desert Wind", "D", "Wind", ["desert wind sound", "sahara wind sound", "desert storm wind"], ["wind"]),
+    ("Deep Forest", "D", "Forest", ["deep forest sound", "forest birds ambience", "dense forest sound"], ["forest"]),
+    ("Dawn Chorus", "D", "Birds", ["dawn chorus birds", "morning birds singing", "dawn birdsong"], ["birds"]),
+    ("Drizzle", "D", "Rain", ["drizzle sound", "light rain sound", "soft rain ambience"], ["rain"]),
+    ("Drumming Rain", "D", "Rain", ["rain on roof sound", "rain on tent sound", "heavy rain roof"], ["rain"]),
+    # ---------------- E ----------------
+    ("Eagle Calls", "E", "Birds", ["eagle call sound", "bald eagle sound", "eagle screech"], ["birds"]),
+    ("Evening Forest", "E", "Forest", ["evening forest sound", "dusk forest ambience", "evening birds sound"], ["forest"]),
+    ("Echoing Cave", "E", "Ambience", ["cave sound water drops", "cave ambience", "echo cave recording"], ["cave"]),
+    ("Elephants", "E", "Wildlife", ["elephant sound", "elephants trumpeting", "elephant calls"], ["animals"]),
+    ("Eucalyptus Wind", "E", "Wind", ["eucalyptus wind sound", "wind leaves trees sound", "tree wind sound"], ["wind"]),
+    ("Estuary", "E", "Water", ["estuary sound", "mudflat water birds", "tidal estuary birds"], ["water"]),
+    ("Early Birds", "E", "Birds", ["early morning birds sound", "birds at sunrise sound", "morning birdsong"], ["birds"]),
+    # ---------------- F ----------------
+    ("Forest Ambience", "F", "Forest", ["forest ambience sound", "forest sounds birds", "woodland ambience"], ["forest"]),
+    ("Frogs", "F", "Wildlife", ["frog sound", "frogs croaking sound", "frog chorus"], ["frogs"]),
+    ("Flowing River", "F", "Water", ["flowing river sound", "river water sound", "river flowing"], ["water"]),
+    ("Fire", "F", "Fire", ["fire sound", "fireplace sound", "fire crackling"], ["fire"]),
+    ("Fireflies Night", "F", "Night", ["summer night sound", "night insects sound", "summer night ambience"], ["night"]),
+    ("Fjord Wind", "F", "Wind", ["fjord wind sound", "coastal wind sound", "sea wind sound"], ["wind"]),
+    ("Frost Morning", "F", "Ambience", ["winter birds sound", "cold morning birds", "snow morning ambience"], ["winter"]),
+    # ---------------- G ----------------
+    ("Gentle Rain", "G", "Rain", ["gentle rain sound", "soft rain sound", "light rain ambience"], ["rain"]),
+    ("Geese", "G", "Wildlife", ["geese sound", "goose honking sound", "geese calls"], ["birds"]),
+    ("Grassland Wind", "G", "Wind", ["grassland wind sound", "prairie wind sound", "wind grass sound"], ["wind"]),
+    ("Gulls", "G", "Birds", ["seagull sound", "gulls calling sound", "seagulls beach"], ["birds", "ocean"]),
+    ("Gurgling Stream", "G", "Water", ["gurgling stream sound", "stream water flowing sound", "mountain brook sound"], ["water"]),
+    ("Glacier", "G", "Ambience", ["glacier sound", "iceberg sound", "glacier ice cracking"], ["ice"]),
+    ("Grove Birds", "G", "Birds", ["garden birds sound", "birds in garden sound", "songbirds ambience"], ["birds"]),
+    # ---------------- H ----------------
+    ("Heavy Rain", "H", "Rain", ["heavy rain sound", "downpour sound", "hard rain sound"], ["rain"]),
+    ("Howling Wind", "H", "Wind", ["howling wind sound", "strong wind sound", "wind storm sound"], ["wind"]),
+    ("Horse Sounds", "H", "Wildlife", ["horse neigh sound", "horse galloping sound", "horse sounds"], ["animals"]),
+    ("Hail", "H", "Storm", ["hailstorm sound", "hail on roof sound", "hailstones sound"], ["storm"]),
+    ("Harbour", "H", "Ocean", ["harbour sound", "port water sound", "boat water lapping"], ["ocean"]),
+    ("Hollow Wind", "H", "Wind", ["wind through trees sound", "forest wind sound", "wind in leaves"], ["wind"]),
+    ("Hummingbirds", "H", "Birds", ["hummingbird sound", "hummingbird wings sound", "hummingbird flight"], ["birds"]),
+    # ---------------- I ----------------
+    ("Ice Cracking", "I", "Ambience", ["ice cracking sound", "ice breaking sound", "glacier ice crack"], ["ice"]),
+    ("Insects", "I", "Wildlife", ["insects sound", "summer insects sound", "insect ambience"], ["insects"]),
+    ("Island Waves", "I", "Ocean", ["island waves sound", "tropical beach waves", "island shore sound"], ["ocean"]),
+    ("Iguazu Falls", "I", "Water", ["waterfall sound large", "waterfall roar water", "cataract water sound"], ["water"]),
+    ("Ice Storm", "I", "Storm", ["ice storm sound", "freezing rain sound", "winter storm sound"], ["storm"]),
+    ("Indian Monsoon", "I", "Rain", ["monsoon rain sound", "monsoon sound", "tropical rain heavy"], ["rain"]),
+    # ---------------- J ----------------
+    ("Jungle Ambience", "J", "Forest", ["jungle ambience sound", "jungle sounds", "tropical jungle sound"], ["jungle"]),
+    ("Jungle Birds", "J", "Birds", ["jungle birds sound", "tropical birds sound", "exotic birds calls"], ["birds", "jungle"]),
+    ("Jacuzzi", "J", "Water", ["water bubbling sound", "bubbling water sound", "spring water bubbling"], ["water"]),
+    ("June Forest", "J", "Forest", ["summer forest ambience birds", "woodland summer sound", "forest summer insects"], ["forest"]),
+    # ---------------- K ----------------
+    ("Kingfisher", "K", "Birds", ["kingfisher call sound", "kingfisher sound", "kingfisher bird"], ["birds"]),
+    ("Kangaroo Sounds", "K", "Wildlife", ["kangaroo sound", "kangaroo calls", "wallaby sound"], ["animals"]),
+    ("Kookaburra", "K", "Birds", ["kookaburra sound", "kookaburra laugh sound", "kookaburra call"], ["birds"]),
+    ("Kettle Moraine", "K", "Forest", ["forest birds ambience sound", "woodland birds sound", "deciduous forest sound"], ["forest"]),
+    ("Koala", "K", "Wildlife", ["koala call sound", "koala bellow sound", "koala growl"], ["animals"]),
+    # ---------------- L ----------------
+    ("Lake Waves", "L", "Water", ["lake waves sound", "lake shore sound", "water lapping lake"], ["water"]),
+    ("Leaves Rustling", "L", "Forest", ["leaves rustling sound", "tree leaves sound", "rustling leaves"], ["leaves"]),
+    ("Lightning Storm", "L", "Storm", ["lightning storm sound", "thunderstorm sound", "storm thunder rain"], ["storm"]),
+    ("Lapping Water", "L", "Water", ["water lapping sound", "gentle water lapping", "waves lapping shore"], ["water"]),
+    ("Loons", "L", "Birds", ["loon call sound", "loon sound lake", "common loon"], ["birds"]),
+    ("Larks", "L", "Birds", ["skylark song", "skylark singing", "lark birdsong field"], ["birds"]),
+    # ---------------- M ----------------
+    ("Morning Birds", "M", "Birds", ["morning birds sound", "morning birdsong", "birds morning garden"], ["birds"]),
+    ("Mountain Wind", "M", "Wind", ["mountain wind sound", "wind mountain ridge", "alpine wind sound"], ["wind"]),
+    ("Monsoon Rain", "M", "Rain", ["monsoon rain sound", "heavy tropical rain sound", "rain monsoon"], ["rain"]),
+    ("Meadow", "M", "Ambience", ["meadow sound", "summer meadow insects", "grassland ambience"], ["ambience"]),
+    ("Mangrove", "M", "Water", ["mangrove forest sound", "mangrove birds sound", "mudflat birds sound"], ["water"]),
+    ("Mist Forest", "M", "Forest", ["misty forest sound", "cloud forest sound", "rainforest morning sound"], ["forest"]),
+    # ---------------- N ----------------
+    ("Night Forest", "N", "Night", ["night forest sound", "forest at night animals", "night woodland ambience"], ["night"]),
+    ("Night Crickets", "N", "Night", ["night crickets sound", "crickets at night", "cricket chorus night"], ["night", "insects"]),
+    ("Night Ocean", "N", "Ocean", ["night ocean waves sound", "ocean at night sound", "sea night waves"], ["ocean", "night"]),
+    ("Night Owls", "N", "Birds", ["owl hooting sound", "owl at night sound", "owl calls night"], ["birds"]),
+    ("Night Rain", "N", "Rain", ["rain at night sound", "night rain ambience", "rain night"], ["rain"]),
+    ("Northern Wind", "N", "Wind", ["north wind sound", "cold north wind", "winter wind sound"], ["wind"]),
+    # ---------------- O ----------------
+    ("Ocean Waves", "O", "Ocean", ["ocean waves sound", "sea waves sound", "ocean surf sound"], ["ocean"]),
+    ("Owl Calls", "O", "Birds", ["owl call sound", "tawny owl sound", "owl hooting"], ["birds"]),
+    ("Outdoor Wind", "O", "Wind", ["outdoor wind sound", "wind outside sound", "ambient wind sound"], ["wind"]),
+    ("Otter", "O", "Wildlife", ["otter sound", "sea otter sound", "otter calls"], ["animals"]),
+    ("Oasis", "O", "Water", ["desert oasis water sound", "palm water sound", "desert spring water"], ["water"]),
+    ("Orchard Birds", "O", "Birds", ["orchard birds sound", "birds in trees sound", "garden birdsong"], ["birds"]),
+    # ---------------- P ----------------
+    ("Pouring Rain", "P", "Rain", ["pouring rain sound", "heavy rain downpour", "rain pouring"], ["rain"]),
+    ("Parrots", "P", "Birds", ["parrot sound", "parrots squawking", "parrot calls"], ["birds"]),
+    ("Pine Forest", "P", "Forest", ["pine forest sound", "coniferous forest sound", "pine trees wind"], ["forest"]),
+    ("Pebble Beach", "P", "Ocean", ["pebble beach waves sound", "stones waves sound", "shingle beach sound"], ["ocean"]),
+    ("Pond", "P", "Water", ["pond sound", "pond frogs sound", "pond ambience"], ["water", "frogs"]),
+    ("Prairie", "P", "Ambience", ["prairie sound", "grassland ambience", "plains insects sound"], ["ambience"]),
+    # ---------------- Q ----------------
+    ("Quiet Forest", "Q", "Forest", ["quiet forest sound", "calm forest ambience", "peaceful forest sound"], ["forest"]),
+    ("Quail Calls", "Q", "Birds", ["quail call sound", "quail sound", "bobwhite quail"], ["birds"]),
+    ("Quiet Rain", "Q", "Rain", ["quiet rain sound", "calm rain ambience", "soft rain night"], ["rain"]),
+    ("Quarry Echo", "Q", "Ambience", ["cave ambience echo sound", "echo sound nature", "canyon echo"], ["cave"]),
+    # ---------------- R ----------------
+    ("Rainforest", "R", "Forest", ["rainforest sound", "tropical rainforest ambience", "rainforest birds insects"], ["jungle"]),
+    ("River Flowing", "R", "Water", ["river flowing sound", "river sound water", "large river sound"], ["water"]),
+    ("Roaring Waterfall", "R", "Water", ["waterfall sound", "roaring waterfall sound", "waterfall ambience"], ["water"]),
+    ("Rain on Leaves", "R", "Rain", ["rain on leaves sound", "rain forest leaves", "rain trees sound"], ["rain"]),
+    ("Robin Song", "R", "Birds", ["robin song sound", "european robin song", "robin birdsong"], ["birds"]),
+    ("Reeds Wind", "R", "Wind", ["wind in reeds sound", "marsh wind sound", "reed wind"], ["wind"]),
+    # ---------------- S ----------------
+    ("Singing Birds", "S", "Birds", ["birds singing sound", "songbird sound", "bird song"], ["birds"]),
+    ("Snowfall", "S", "Ambience", ["snowfall sound", "snow falling sound", "winter snow ambience"], ["winter"]),
+    ("Stream", "S", "Water", ["stream sound", "stream water sound", "forest stream ambience"], ["water"]),
+    ("Storm", "S", "Storm", ["storm sound", "storm rain wind sound", "storm ambience"], ["storm"]),
+    ("Sea Waves", "S", "Ocean", ["sea waves sound", "sea surf sound", "waves sea shore"], ["ocean"]),
+    ("Summer Night", "S", "Night", ["summer night crickets sound", "summer night ambience", "night insects summer"], ["night"]),
+    ("Swamp", "S", "Water", ["swamp sound", "swamp frogs insects", "marsh ambience"], ["water"]),
+    ("Sandstorm", "S", "Wind", ["wind storm desert sound", "dust wind sound", "strong desert wind"], ["wind"]),
+    # ---------------- T ----------------
+    ("Thunderstorm", "T", "Storm", ["thunderstorm sound", "thunder rain storm", "thunder and rain"], ["storm"]),
+    ("Tropical Rain", "T", "Rain", ["tropical rain sound", "rain tropical forest", "tropical downpour"], ["rain"]),
+    ("Tree Leaves", "T", "Forest", ["tree leaves wind sound", "leaves in wind sound", "tree canopy wind"], ["leaves"]),
+    ("Tide", "T", "Ocean", ["tide sound", "incoming tide waves", "tidal water sound"], ["ocean"]),
+    ("Thrush Song", "T", "Birds", ["thrush song sound", "song thrush singing", "thrush birdsong"], ["birds"]),
+    ("Tundra Wind", "T", "Wind", ["tundra wind sound", "arctic tundra ambience", "cold wind open"], ["wind"]),
+    # ---------------- U ----------------
+    ("Underwater Ambience", "U", "Ambience", ["underwater sound", "underwater ambience", "underwater bubbles sound"], ["water"]),
+    ("Urban Nature", "U", "Ambience", ["city park birds sound", "park ambience birds", "urban park sound"], ["ambience"]),
+    ("Upland Birds", "U", "Birds", ["upland birds sound", "moorland birds", "heath birdsong"], ["birds"]),
+    ("Undergrowth", "U", "Forest", ["forest floor sound", "undergrowth rustle", "woodland floor sound"], ["forest"]),
+    # ---------------- V ----------------
+    ("Valley Wind", "V", "Wind", ["valley wind sound", "wind in valley", "mountain valley wind"], ["wind"]),
+    ("Volcano Ambience", "V", "Ambience", ["volcano sound", "volcanic rumble sound", "lava sound volcano"], ["ambience"]),
+    ("Village Morning", "V", "Ambience", ["village morning birds sound", "countryside morning sound", "rural morning ambience"], ["ambience"]),
+    ("Vines Forest", "V", "Forest", ["tropical forest insects sound", "rainforest insects birds", "jungle insects sound"], ["jungle"]),
+    # ---------------- W ----------------
+    ("Waterfall", "W", "Water", ["waterfall sound", "waterfall water sound", "small waterfall"], ["water"]),
+    ("Wind in Trees", "W", "Wind", ["wind in trees sound", "wind through forest sound", "trees wind"], ["wind"]),
+    ("Waves", "W", "Ocean", ["waves sound", "ocean waves ambience", "waves crashing"], ["ocean"]),
+    ("Wildlife", "W", "Wildlife", ["wildlife sounds", "forest animals sound", "animal ambience"], ["animals"]),
+    ("Wetland Birds", "W", "Birds", ["wetland birds sound", "water birds calls", "marsh birds"], ["birds"]),
+    ("Wind Chimes", "W", "Ambience", ["wind chimes sound", "chimes wind", "bells wind sound"], ["ambience"]),
+    # ---------------- X ----------------
+    ("Xylophonic Nature", "X", "Ambience", ["wooden percussion nature sound", "wood knocking sound", "bamboo percussion sound"], ["ambience"]),
+    ("Exotic Forest Ambience", "X", "Forest", ["exotic forest sound", "tropical forest ambience birds", "borneo forest sound"], ["jungle"]),
+    ("Xeric Wind", "X", "Wind", ["dry wind sound", "desert breeze sound", "arid wind"], ["wind"]),
+    ("Xenops Birds", "X", "Birds", ["tropical bird calls", "amazon birds sound", "neotropical birds"], ["birds"]),
+    # ---------------- Y ----------------
+    ("Yellowstone", "Y", "Ambience", ["geyser sound", "hot spring sound", "steam vent sound"], ["ambience"]),
+    ("Yard Birds", "Y", "Birds", ["backyard birds sound", "garden birds chirping", "suburban birds"], ["birds"]),
+    ("Yosemite Wind", "Y", "Wind", ["pine wind sound", "sierra wind sound", "mountain pine wind"], ["wind"]),
+    ("Yak Bells", "Y", "Ambience", ["cow bells sound", "animal bells sound", "goat bells"], ["ambience"]),
+    # ---------------- Z ----------------
+    ("Zanzibar Beach", "Z", "Ocean", ["tropical beach sound", "palm beach waves sound", "tropical shore"], ["ocean"]),
+    ("Zebra Sounds", "Z", "Wildlife", ["zebra sound", "zebra call", "zebra bray"], ["animals"]),
+    ("Zen Garden", "Z", "Water", ["zen garden water sound", "japanese garden water", "small fountain sound"], ["water"]),
+    ("Zephyr", "Z", "Wind", ["soft wind sound", "zephyr breeze sound", "light breeze leaves"], ["wind"]),
+]
