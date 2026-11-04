@@ -14,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.naturia.app.R;
 import com.naturia.app.data.AppDb;
 import com.naturia.app.data.CatalogRepository;
-import com.naturia.app.data.DownloadStore;
 import com.naturia.app.model.MixLayer;
 import com.naturia.app.model.Sound;
 import com.naturia.app.playback.PlaybackHub;
@@ -23,10 +22,10 @@ import com.naturia.app.util.Art;
 
 import java.util.ArrayList;
 
-/** Full player: artwork, transport, repeat, volume, sleep timer, download, mix hand-off. */
+/** Full player: artwork, transport, repeat, volume, sleep timer, licence sheet, mix hand-off. */
 public class PlayerActivity extends AppCompatActivity implements PlaybackHub.Listener {
 
-    private ImageView art, play, favorite, download, repeat, sleep, addMix;
+    private ImageView art, play, favorite, info, repeat, sleep, addMix;
     private TextView title, sub, pos, dur, license;
     private SeekBar seek, volume;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -40,7 +39,7 @@ public class PlayerActivity extends AppCompatActivity implements PlaybackHub.Lis
         art = findViewById(R.id.player_art);
         play = findViewById(R.id.btn_play);
         favorite = findViewById(R.id.btn_favorite);
-        download = findViewById(R.id.btn_download);
+        info = findViewById(R.id.btn_info);
         repeat = findViewById(R.id.btn_repeat);
         sleep = findViewById(R.id.btn_sleep);
         addMix = findViewById(R.id.btn_add_mix);
@@ -63,7 +62,7 @@ public class PlayerActivity extends AppCompatActivity implements PlaybackHub.Lis
             AppDb.get(this).toggleFavorite(sound.id);
             refreshFavorite();
         });
-        download.setOnClickListener(v -> toggleDownload());
+        info.setOnClickListener(v -> showLicence());
         repeat.setOnClickListener(v -> {
             PlaybackHub.repeat = !PlaybackHub.repeat;
             Toast.makeText(this, PlaybackHub.repeat ? "Loop on" : "Loop off", Toast.LENGTH_SHORT).show();
@@ -138,7 +137,6 @@ public class PlayerActivity extends AppCompatActivity implements PlaybackHub.Lis
         }
         repeat.setAlpha(PlaybackHub.repeat ? 1f : 0.45f);
         refreshFavorite();
-        refreshDownload();
     }
 
     private void refreshFavorite() {
@@ -147,42 +145,29 @@ public class PlayerActivity extends AppCompatActivity implements PlaybackHub.Lis
                 ? R.drawable.ic_heart_filled : R.drawable.ic_heart);
     }
 
-    private void refreshDownload() {
+    /** Every sound streams online, so the player shows provenance instead of a download button. */
+    private void showLicence() {
         if (sound == null) return;
-        boolean local = DownloadStore.get(this).isDownloaded(sound);
-        download.setImageResource(local ? R.drawable.ic_downloaded : R.drawable.ic_download);
-        int p = DownloadStore.get(this).progressOf(sound.id);
-        download.setAlpha(p > 0 && p < 100 ? 0.6f : 1f);
-    }
-
-    private void toggleDownload() {
-        if (sound == null) return;
-        DownloadStore ds = DownloadStore.get(this);
-        if (ds.isDownloaded(sound)) {
-            ds.delete(sound);
-            Toast.makeText(this, "Removed from downloads", Toast.LENGTH_SHORT).show();
-        } else {
-            ds.addListener(sound.id, new DownloadStore.Listener() {
-                @Override public void onProgress(String soundId, int percent) {
-                    runOnUiThread(() -> download.setAlpha(0.6f));
-                }
-                @Override public void onDone(String soundId, java.io.File file) {
-                    runOnUiThread(() -> {
-                        refreshDownload();
-                        Toast.makeText(PlayerActivity.this, "Saved for offline", Toast.LENGTH_SHORT).show();
-                    });
-                }
-                @Override public void onError(String soundId, String message) {
-                    runOnUiThread(() -> {
-                        refreshDownload();
-                        Toast.makeText(PlayerActivity.this, "Download failed: " + message,
-                                Toast.LENGTH_SHORT).show();
-                    });
-                }
-            });
-            ds.download(sound, CatalogRepository.get(this).audioUrl(sound));
-            Toast.makeText(this, "Downloading…", Toast.LENGTH_SHORT).show();
-        }
+        String body = sound.name + "\n\n" + sound.license
+                + "\nCreator: " + sound.creator
+                + "\nSource: " + sound.provider
+                + "\nLength: " + sound.durationLabel() + " (seamless loop)"
+                + "\nStreamed live from the NATURIA CDN.";
+        new AlertDialog.Builder(this)
+                .setTitle("Licence & source")
+                .setMessage(body)
+                .setPositiveButton("Open source page", (d, w) -> {
+                    if (sound.sourcePage != null && !sound.sourcePage.isEmpty()) {
+                        try {
+                            startActivity(new android.content.Intent(
+                                    android.content.Intent.ACTION_VIEW,
+                                    android.net.Uri.parse(sound.sourcePage)));
+                        } catch (Exception ignored) {
+                        }
+                    }
+                })
+                .setNegativeButton("Close", null)
+                .show();
     }
 
     private void showSleepDialog() {

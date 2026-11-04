@@ -74,7 +74,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="22dp"
         style="@style/Text.Section"
-        android:text="Storage" />
+        android:text="Live catalogue" />
 
     <TextView
         android:id="@+id/tv_storage"
