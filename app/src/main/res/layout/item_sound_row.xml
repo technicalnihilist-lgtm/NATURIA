@@ -51,11 +51,4 @@
         android:padding="8dp"
         android:src="@drawable/ic_heart" />
 
-    <ImageView
-        android:id="@+id/row_download"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
-        android:contentDescription="@string/download"
-        android:padding="8dp"
-        android:src="@drawable/ic_download" />
 </LinearLayout>
