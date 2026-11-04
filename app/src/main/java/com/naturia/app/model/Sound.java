@@ -11,6 +11,7 @@ public class Sound {
     public String id, name, letter, group, provider, providerTitle, sourcePage,
             originalFile, creator, license, licenseCode, licenseUrl, cdnPath, description;
     public double duration;
+    public String added = "";
     public long size;
     public boolean attributionRequired;
     public List<String> tags = new ArrayList<>();
@@ -32,6 +33,7 @@ public class Sound {
         s.cdnPath = o.optString("cdn_path");
         s.description = o.optString("description");
         s.duration = o.optDouble("duration", 60);
+        s.added = o.optString("added", "");
         s.size = o.optLong("size");
         s.attributionRequired = o.optBoolean("attribution_required", true);
         JSONArray t = o.optJSONArray("tags");
