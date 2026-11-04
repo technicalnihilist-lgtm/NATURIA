@@ -29,6 +29,7 @@ public class PlaybackHub {
     public static long durationMs = 0;
     public static float volume = 1f;
     public static boolean repeat = true;
+    public static String error = null;
     public static long sleepEndsAt = 0;
     public static List<MixLayer> mixLayers = new ArrayList<>();
 
