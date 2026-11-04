@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.naturia.app.R;
 import com.naturia.app.data.AppDb;
 import com.naturia.app.data.CatalogRepository;
-import com.naturia.app.data.DownloadStore;
 import com.naturia.app.model.Sound;
 
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ import java.util.List;
 public class LibraryFragment extends Fragment {
 
     private Adapters.SoundRowAdapter adapter;
-    private TextView empty, tabFav, tabRecent, tabDownloads;
+    private TextView empty, tabFav, tabRecent, tabNew;
     private int tab = 0;
 
     @Nullable
@@ -37,7 +36,7 @@ public class LibraryFragment extends Fragment {
         empty = v.findViewById(R.id.tv_lib_empty);
         tabFav = v.findViewById(R.id.tab_fav);
         tabRecent = v.findViewById(R.id.tab_recent);
-        tabDownloads = v.findViewById(R.id.tab_downloads);
+        tabNew = v.findViewById(R.id.tab_new);
 
         RecyclerView rv = v.findViewById(R.id.rv_library);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -47,7 +46,7 @@ public class LibraryFragment extends Fragment {
 
         tabFav.setOnClickListener(x -> setTab(0));
         tabRecent.setOnClickListener(x -> setTab(1));
-        tabDownloads.setOnClickListener(x -> setTab(2));
+        tabNew.setOnClickListener(x -> setTab(2));
         setTab(0);
         return v;
     }
@@ -58,7 +57,7 @@ public class LibraryFragment extends Fragment {
         int off = ContextCompat.getColor(requireContext(), R.color.chip_bg);
         int onText = ContextCompat.getColor(requireContext(), R.color.on_primary);
         int offText = ContextCompat.getColor(requireContext(), R.color.text_dim);
-        TextView[] tabs = {tabFav, tabRecent, tabDownloads};
+        TextView[] tabs = {tabFav, tabRecent, tabNew};
         for (int i = 0; i < tabs.length; i++) {
             boolean selected = i == index;
             tabs[i].setSelected(selected);
@@ -71,20 +70,21 @@ public class LibraryFragment extends Fragment {
     private void load() {
         CatalogRepository repo = CatalogRepository.get(requireContext());
         AppDb db = AppDb.get(requireContext());
-        List<String> ids;
-        if (tab == 0) ids = db.favorites();
-        else if (tab == 1) ids = db.recent();
-        else ids = db.downloads();
-
         List<Sound> list = new ArrayList<>();
-        for (String id : ids) {
-            Sound s = repo.byId(id);
-            if (s != null) list.add(s);
+        if (tab == 2) {
+            list.addAll(repo.newest(40));
+        } else {
+            List<String> ids = tab == 0 ? db.favorites() : db.recent();
+            for (String id : ids) {
+                Sound s = repo.byId(id);
+                if (s != null) list.add(s);
+            }
         }
         adapter.submit(list);
         empty.setVisibility(list.isEmpty() ? View.VISIBLE : View.GONE);
         empty.setText(tab == 0 ? "No favourites yet. Tap the heart on any sound."
-                : tab == 1 ? "Nothing played yet." : "No downloads yet. Tap the arrow to save a sound offline.");
+                : tab == 1 ? "Nothing played yet."
+                : "The catalogue is being fetched. Pull it again in a moment.");
     }
 
     @Override
