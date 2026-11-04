@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="152dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="12dp"
+    android:background="@drawable/bg_glass_soft"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="136dp">
+
+        <ImageView
+            android:id="@+id/card_art"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_thumb"
+            android:contentDescription="@string/app_name"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/card_play"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_circle_primary"
+            android:contentDescription="@string/play"
+            android:padding="8dp"
+            android:src="@drawable/ic_play_dark" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/card_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/text"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/card_sub"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/text_faint"
+        android:textSize="11sp" />
+</LinearLayout>

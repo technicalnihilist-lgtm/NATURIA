@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_glass_soft"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/layer_art"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_thumb"
+            android:contentDescription="@string/app_name"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/layer_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:textColor="@color/text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/layer_volume_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/mix"
+            android:src="@drawable/ic_volume" />
+
+        <ImageView
+            android:id="@+id/layer_remove"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="6dp"
+            android:contentDescription="@string/close"
+            android:padding="6dp"
+            android:src="@drawable/ic_close" />
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/layer_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:max="100"
+        android:progressDrawable="@drawable/bg_slider"
+        android:thumbTint="@color/primary" />
+</LinearLayout>
