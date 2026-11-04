@@ -27,12 +27,10 @@ import androidx.media3.session.MediaSessionService;
 import com.naturia.app.R;
 import com.naturia.app.data.AppDb;
 import com.naturia.app.data.CatalogRepository;
-import com.naturia.app.data.DownloadStore;
 import com.naturia.app.model.MixLayer;
 import com.naturia.app.model.Sound;
 import com.naturia.app.ui.PlayerActivity;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -187,13 +185,7 @@ public class PlaybackService extends MediaSessionService {
         sleeping = false;
         restoreVolume();
 
-        Uri uri;
-        File local = DownloadStore.get(this).fileFor(s);
-        if (local.exists() && local.length() > 10000) {
-            uri = Uri.fromFile(local);
-        } else {
-            uri = Uri.parse(CatalogRepository.get(this).audioUrl(s));
-        }
+        Uri uri = Uri.parse(CatalogRepository.get(this).audioUrl(s));
 
         MediaItem item = new MediaItem.Builder()
                 .setUri(uri)
@@ -271,10 +263,7 @@ public class PlaybackService extends MediaSessionService {
                     .setWakeMode(C.WAKE_MODE_LOCAL)
                     .build();
             p.setRepeatMode(Player.REPEAT_MODE_ONE);
-            File local = DownloadStore.get(this).fileFor(s);
-            Uri uri = (local.exists() && local.length() > 10000)
-                    ? Uri.fromFile(local)
-                    : Uri.parse(repo.audioUrl(s));
+            Uri uri = Uri.parse(repo.audioUrl(s));
             p.setMediaItem(MediaItem.fromUri(uri));
             p.setVolume(vol * PlaybackHub.volume);
             p.prepare();
