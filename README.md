@@ -4,9 +4,9 @@ A native Android nature-sound app: 127 licence-verified recordings, a premium
 glass-and-forest interface, a multi-layer mixing studio, offline downloads and a
 background media service with lock-screen controls.
 
-**[Download the APK](releases/naturia-1.0.apk)** · 9.4 MB · `com.naturia.app` · Android 7.0+
+**[Download the APK](https://github.com/technicalnihilist-lgtm/NATURIA/releases/download/v1.0.0/NATURIA-1.0.apk)** · 9.4 MB · `com.naturia.app` · Android 7.0+
 
-![Home](screenshots/01-home.png)
+[![Home](screenshots/01-home.png)](https://github.com/technicalnihilist-lgtm/NATURIA/releases/tag/v1.0.0)
 
 | Explore | Player | Studio | Library (light) |
 |---|---|---|---|
