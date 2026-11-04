@@ -64,9 +64,11 @@ public class PlayerActivity extends AppCompatActivity implements PlaybackHub.Lis
         });
         info.setOnClickListener(v -> showLicence());
         repeat.setOnClickListener(v -> {
-            PlaybackHub.repeat = !PlaybackHub.repeat;
-            Toast.makeText(this, PlaybackHub.repeat ? "Loop on" : "Loop off", Toast.LENGTH_SHORT).show();
-            repeat.setAlpha(PlaybackHub.repeat ? 1f : 0.45f);
+            boolean next = !PlaybackHub.repeat;
+            PlaybackService.repeat(this, next);
+            Toast.makeText(this, next ? "Loop on — the sound repeats forever"
+                    : "Loop off", Toast.LENGTH_SHORT).show();
+            repeat.setAlpha(next ? 1f : 0.45f);
         });
         sleep.setOnClickListener(v -> showSleepDialog());
         addMix.setOnClickListener(v -> {
@@ -100,7 +102,7 @@ public class PlayerActivity extends AppCompatActivity implements PlaybackHub.Lis
             @Override public void onStopTrackingTouch(SeekBar sb) {
                 if (PlaybackHub.durationMs > 0) {
                     long target = (long) (PlaybackHub.durationMs * (sb.getProgress() / 1000f));
-                    PlaybackService.play(PlayerActivity.this, sound);
+                    PlaybackService.seek(PlayerActivity.this, target);
                 }
             }
         });
@@ -121,7 +123,10 @@ public class PlayerActivity extends AppCompatActivity implements PlaybackHub.Lis
     private void bind() {
         if (sound != null) {
             title.setText(PlaybackHub.mode == PlaybackHub.MODE_MIX ? PlaybackHub.title : sound.name);
-            sub.setText(PlaybackHub.mode == PlaybackHub.MODE_MIX ? PlaybackHub.subtitle : sound.subtitle());
+            String line = PlaybackHub.mode == PlaybackHub.MODE_MIX ? PlaybackHub.subtitle : sound.subtitle();
+            if (PlaybackHub.error != null) line = PlaybackHub.error;
+            else if (PlaybackHub.buffering) line = "Buffering…  " + line;
+            sub.setText(line);
             Art.load(this, art, sound.group);
             license.setText(sound.license + " · " + sound.creator + " · " + sound.provider);
         } else {
