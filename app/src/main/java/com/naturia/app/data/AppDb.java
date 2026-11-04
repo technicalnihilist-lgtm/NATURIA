@@ -12,7 +12,7 @@ import com.naturia.app.model.MixLayer;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Local store for favourites, play history, saved mixes and offline downloads. */
+/** Local store for favourites, play history and saved mixes. Audio itself is streamed. */
 public class AppDb extends SQLiteOpenHelper {
 
     private static final String NAME = "naturia.db";
@@ -34,7 +34,6 @@ public class AppDb extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE recent(sound_id TEXT PRIMARY KEY, ts INTEGER)");
         db.execSQL("CREATE TABLE mixes(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, ts INTEGER)");
         db.execSQL("CREATE TABLE mix_layers(mix_id INTEGER, sound_id TEXT, volume REAL, pos INTEGER)");
-        db.execSQL("CREATE TABLE downloads(sound_id TEXT PRIMARY KEY, path TEXT, size INTEGER, ts INTEGER)");
     }
 
     @Override
@@ -83,38 +82,6 @@ public class AppDb extends SQLiteOpenHelper {
 
     public void clearHistory() {
         getWritableDatabase().delete("recent", null, null);
-    }
-
-    /* ---------------- downloads ---------------- */
-
-    public void addDownload(String id, String path, long size) {
-        ContentValues v = new ContentValues();
-        v.put("sound_id", id);
-        v.put("path", path);
-        v.put("size", size);
-        v.put("ts", System.currentTimeMillis());
-        getWritableDatabase().insertWithOnConflict("downloads", null, v, SQLiteDatabase.CONFLICT_REPLACE);
-    }
-
-    public void removeDownload(String id) {
-        getWritableDatabase().delete("downloads", "sound_id=?", new String[]{id});
-    }
-
-    public String downloadPath(String id) {
-        try (Cursor c = getReadableDatabase().rawQuery(
-                "SELECT path FROM downloads WHERE sound_id=?", new String[]{id})) {
-            return c.moveToFirst() ? c.getString(0) : null;
-        }
-    }
-
-    public List<String> downloads() {
-        return ids("SELECT sound_id FROM downloads ORDER BY ts DESC");
-    }
-
-    public long totalDownloadBytes() {
-        try (Cursor c = getReadableDatabase().rawQuery("SELECT SUM(size) FROM downloads", null)) {
-            return c.moveToFirst() ? c.getLong(0) : 0;
-        }
     }
 
     /* ---------------- mixes ---------------- */
