@@ -177,3 +177,17 @@ App code: MIT. Audio: each recording keeps its own licence, listed in
 [`catalog/ATTRIBUTION.md`](catalog/ATTRIBUTION.md) — mostly public domain and
 CC BY-SA, which require attribution (shown in-app) and share-alike for the
 audio itself. Artwork: CC-licensed photography from Wikimedia Commons.
+
+---
+
+## ☕ Donate / Buy me a coffee
+
+**Coming soon** — our donation options are on the way.
+
+| Platform | Status |
+| --- | --- |
+| Paytm | Coming soon |
+| PayPal | Coming soon |
+| GPay (Google Pay) | Coming soon |
+
+If you like our work, you can support us with a donation. We are bringing this very soon — **coming soon**.
